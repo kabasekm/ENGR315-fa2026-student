@@ -25,9 +25,9 @@ def load_tensile_data(_path: str):
     :return: A DataFrame with one row per sample
     """
 
-    # YOUR CODE HERE #
+    data = pd.read_csv(_path)
 
-    return None
+    return data
 
 
 def select_material(_df, _material: str):
@@ -38,9 +38,9 @@ def select_material(_df, _material: str):
     :return: A DataFrame that only contains the rows for that material. All columns are kept.
     """
 
-    # YOUR CODE HERE #
+    selected = _df[_df['Material_Type'] == _material]
 
-    return None
+    return selected
 
 
 def select_strong(_df, _material: str, _min_yield: float):
@@ -53,9 +53,12 @@ def select_strong(_df, _material: str, _min_yield: float):
     :return: A DataFrame with the rows that meet both conditions. All columns are kept.
     """
 
-    # YOUR CODE HERE #
+    selected = _df[
+        (_df['Material_Type'] == _material) &
+        (_df['Yield_Strength'] > _min_yield)
+    ]
 
-    return None
+    return selected
 
 
 def get_values(_df, _material: str, _column: str):
@@ -67,9 +70,10 @@ def get_values(_df, _material: str, _column: str):
     :return: A Numpy array (not a Pandas Series) of the values, in the same order as the DataFrame
     """
 
-    # YOUR CODE HERE #
+    selected = select_material(_df, _material)
+    values = selected[_column].to_numpy()
 
-    return None
+    return values
 
 
 def material_statistics(_df, _material: str, _column: str):
@@ -82,9 +86,11 @@ def material_statistics(_df, _material: str, _column: str):
     :return: A tuple of (mean, standard deviation)
     """
 
-    # YOUR CODE HERE #
+    selected = select_material(_df, _material)
+    mean = selected[_column].mean()
+    std = selected[_column].std()
 
-    return None
+    return (mean, std)
 
 
 def summary_table(_df, _columns: list):
@@ -98,9 +104,17 @@ def summary_table(_df, _columns: list):
              {'PMMA': {'Elastic_Modulus': (3.09, 0.2), 'Yield_Strength': (49.41, 3.04)}, ...}
     """
 
-    # YOUR CODE HERE #
+    table = {}
 
-    return None
+    materials = _df['Material_Type'].unique()
+
+    for material in materials:
+        table[material] = {}
+
+        for column in _columns:
+            table[material][column] = material_statistics(_df, material, column)
+
+    return table
 
 
 if __name__ == '__main__':

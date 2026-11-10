@@ -16,35 +16,61 @@ def detect_heartbeats(filepath):
 
     # load data in matrix from CSV file; skip first two rows
     ## your code here
+    data = np.loadtxt(path, delimiter=',', skiprows=2)
 
     # save each vector as own variable
     ## your code here
+    time = data[:, 0]
+    ekg = data[:, 1]
 
     # identify one column to process. Call that column signal
 
-    signal = -1 ## your code here
+    signal = ekg.copy() ## your code here
 
     # pass data through LOW PASS FILTER (OPTIONAL)
     ## your code here
+    from scipy.signal import butter, sosfiltfilt, find_peaks
+
+    fs = 360
+    lowpass = butter(2, 15, btype='lowpass', fs=fs, output='sos')
+    signal = sosfiltfilt(lowpass, signal)
 
     # pass data through HIGH PASS FILTER (OPTIONAL) to create BAND PASS result
     ## your code here
+    highpass = butter(2, 5, btype='highpass', fs=fs, output='sos')
+    signal = sosfiltfilt(highpass, signal)
 
     # pass data through differentiator
     ## your code here
+    differentiated = np.gradient(signal)
 
     # pass data through square function
     ## your code here
+    squared = differentiated ** 2
 
     # pass through moving average window
     ## your code here
+    window_size = int(0.15 * fs)
+    window = np.ones(window_size) / window_size
+    averaged = np.convolve(squared, window, mode='same')
 
     # use find_peaks to identify peaks within averaged/filtered data
     # save the peaks result and return as part of testbench result
 
     ## your code here peaks,_ = find_peaks(....)
+    threshold = np.mean(averaged) + 0.5 * np.std(averaged)
+    peaks, _ = find_peaks(averaged, height=threshold, distance=int(0.25 * fs))
 
-    beats = None
+    beats = []
+    search_window = int(0.1 * fs)
+
+    for peak in peaks:
+        start = max(0, peak - search_window)
+        end = min(len(signal), peak + search_window + 1)
+        beat = start + np.argmax(np.abs(signal[start:end]))
+        beats.append(beat)
+
+    beats = np.array(sorted(set(beats)), dtype=int)
 
     # do not modify this line
     return signal, beats

@@ -1,3 +1,4 @@
+
 import math
 
 import numpy as np
@@ -69,9 +70,13 @@ def calculate_stress(force, sample_diameter):
     :return: An array of stresses experienced by the sample in MegaPascals (MPa)
     """
 
-    # copy your calculate_stress() from Tensile Testing here
+    # calculate the cross-section area (mm^2)
+    area = math.pi * (sample_diameter / 2)**2
 
-    return None
+    # calculate stress (MPa) from load (kN) and cross-sectional area
+    stress = (force * 1000) / area
+
+    return stress
 
 
 def calculate_max_strength_strain(strain, stress):
@@ -84,9 +89,13 @@ def calculate_max_strength_strain(strain, stress):
     Fracture Strain: the maximum strain experienced before fracture
     """
 
-    # copy your calculate_max_strength_strain() from Tensile Testing here
+    # calculate the maximum stress experienced
+    ultimate_tensile_stress = np.max(stress)
 
-    return -1, -1
+    # calculate the maximum strain experienced
+    fracture_strain = np.max(strain)
+
+    return ultimate_tensile_stress, fracture_strain
 
 
 def calculate_elastic_modulus(strain, stress):
@@ -101,9 +110,23 @@ def calculate_elastic_modulus(strain, stress):
     intercept: y-intercept for linear region best fit of strain/stress data
     """
 
-    # copy your calculate_elastic_modulus() from Tensile Testing here
+    # find 40% of the maximum stress
+    secant_strain = 0.40 * np.max(stress)
 
-    return None, None, None
+    # find the differences from 40% of maximum stress
+    diffs = abs(stress - secant_strain)
+
+    # find the index closest to 40%
+    linear_index = np.argmin(diffs)
+
+    # select the linear region
+    linear_stress = stress[0:linear_index]
+    linear_strain = strain[0:linear_index]
+
+    # calculate slope and intercept
+    slope, intercept = np.polyfit(linear_strain, linear_stress, 1)
+
+    return linear_index, slope, intercept
 
 
 def calculate_percent_offset(slope, strain, stress):
@@ -117,9 +140,19 @@ def calculate_percent_offset(slope, strain, stress):
     intercept_index: the index where the offset line crosses the stress/strain curve
     """
 
-    # copy your calculate_percent_offset() from Tensile Testing here
+    # set the desired offset
+    offset = 0.002
 
-    return None, -1
+    # calculate the offset line
+    offset_line = slope * (strain - offset)
+
+    # find the distance between stress and offset line
+    distance = abs(stress - offset_line)
+
+    # find the closest point
+    intercept_index = np.argmin(distance)
+
+    return offset_line, intercept_index
 
 
 def calculate_yield_strength(strain, stress, modulus):
